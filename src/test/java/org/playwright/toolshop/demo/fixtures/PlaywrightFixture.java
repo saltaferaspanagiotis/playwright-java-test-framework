@@ -42,16 +42,6 @@ public abstract class PlaywrightFixture {
     private static final ThreadLocal<Page> page = new ThreadLocal<>();
     private static final ThreadLocal<BrowserContext> browserContext = new ThreadLocal<>();
 
-    @BeforeEach
-    void start(TestInfo testInfo) {
-        initContext(testInfo.getDisplayName());
-    }
-
-    @AfterEach
-    void stop(TestInfo testInfo) {
-        cleanupContext(testInfo.getDisplayName());
-    }
-
     public static void initContext(String name) {
         ensureOutputDirectories();
         Path harPath = Paths.get("target/hars/" + sanitizedName(name) + ".har");
