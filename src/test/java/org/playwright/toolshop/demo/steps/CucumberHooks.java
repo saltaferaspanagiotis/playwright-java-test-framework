@@ -8,13 +8,17 @@ import org.playwright.toolshop.demo.fixtures.ScenarioContext;
 
 public class CucumberHooks {
 
-    @Before
+    // Lower order runs first for @Before: guarantees the Page/BrowserContext exist
+    // before any step-def class's own @Before (e.g. setupPageObjects()) reads them.
+    @Before(order = 0)
     public void setUp(Scenario scenario) {
         ScenarioContext.clear();
         PlaywrightFixture.initContext(scenario.getName());
     }
 
-    @After
+    // Lower order runs last for @After (higher runs first): guarantees the context
+    // stays open until every other teardown hook has had a chance to use the page.
+    @After(order = 0)
     public void tearDown(Scenario scenario) {
         PlaywrightFixture.cleanupContext(scenario.getName());
     }
