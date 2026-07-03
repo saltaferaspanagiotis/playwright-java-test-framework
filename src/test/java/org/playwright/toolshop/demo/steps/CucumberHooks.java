@@ -17,6 +17,5 @@ public class CucumberHooks {
     @After
     public void tearDown(Scenario scenario) {
         PlaywrightFixture.cleanupContext(scenario.getName());
-        ScenarioContext.clear();
     }
 }
