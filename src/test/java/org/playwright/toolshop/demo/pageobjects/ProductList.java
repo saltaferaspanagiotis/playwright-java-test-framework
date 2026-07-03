@@ -27,7 +27,6 @@ public class ProductList {
     }
 
     public List<ProductSummary> getProductSummaries() {
-        productCards.first().waitFor();
         return productCards.all()
                 .stream()
                 .map(productCard -> {
