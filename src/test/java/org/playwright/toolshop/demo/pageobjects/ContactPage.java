@@ -41,7 +41,6 @@ public class ContactPage {
         submit.click();
     }
 
-    @Step("Get confirmation message")
     public String getConfirmationMessage() {
         confirmationMessage.waitFor();
         return confirmationMessage.textContent().trim();

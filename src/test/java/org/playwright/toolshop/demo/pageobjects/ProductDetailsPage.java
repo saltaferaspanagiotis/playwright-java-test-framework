@@ -14,7 +14,6 @@ public class ProductDetailsPage {
         this.addToCartButton = page.getByTestId("add-to-cart");
     }
 
-    @Step("Add product to cart")
     public void addToCart() {
         addToCartButton.click();
     }
