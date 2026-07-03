@@ -1,1 +1,1 @@
-call mvn clean verify -Dbrowser=chrome -Dcucumber.filter.tags="@smoke" -Dcucumber.execution.parallel.enabled=true
+call mvn clean verify -Dbrowser=chrome -Dcucumber.filter.tags="@smoke" -Dheadless="false" -Dcucumber.execution.parallel.enabled=true
