@@ -22,10 +22,12 @@ public class ProductList {
 
 
     public List<String> getProductNames() {
+        productNames.first().waitFor();
         return productNames.allInnerTexts();
     }
 
     public List<ProductSummary> getProductSummaries() {
+        productCards.first().waitFor();
         return productCards.all()
                 .stream()
                 .map(productCard -> {
