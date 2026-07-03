@@ -32,7 +32,7 @@ cd playwright-java-test-framework
 mvn clean verify
 ```
 
-This compiles the project, runs the default (`@smoke`-tagged) test suite, and generates an Allure report. Tests launch a **visible** (non-headless) Chromium window by default — that's expected, don't be alarmed when a browser pops up on screen.
+This compiles the project, runs the default (`@smoke`-tagged) test suite, and generates an Allure report. Tests run **headless** by default. Pass `-Dheadless=false` to watch them in a visible browser window instead — useful when debugging locally.
 
 To view the report afterwards:
 
@@ -126,6 +126,9 @@ mvn clean verify -Dcucumber.filter.tags="@user_authentication and not @UA_3"
 # Run against a different browser (chromium is the default)
 mvn clean verify -Dbrowser=firefox   # also supports: chrome, edge, webkit
 
+# Run with a visible browser window instead of the headless default
+mvn clean verify -Dheadless=false
+
 # Regenerate the report without re-running tests
 mvn allure:serve
 
@@ -137,6 +140,7 @@ Notes on how this works under the hood:
 - Tests run through **maven-failsafe-plugin** (integration-test phase), not surefire — surefire's unit-test phase is disabled (`skipTests=true` in `pom.xml`).
 - `TestRunner` (the only class failsafe picks up, via its `**/*Runner.java` include pattern) hardcodes `@smoke` as the default Cucumber tag filter. Passing `-Dcucumber.filter.tags=...` on the command line overrides that default — this is the normal way to run a single scenario or feature during development instead of the whole suite.
 - Cucumber scenarios execute **in parallel**, 2 at a time (`src/test/resources/junit-platform.properties`). Any new step definition code must be safe to run concurrently — this is why page objects and fixtures are always created fresh per scenario rather than shared/static.
+- `-Dheadless` (`true`/`false`, defaults to `true`) controls whether the launched browser is visible. **Known gap:** it's only wired up for the `chromium` (default), `firefox`, and `webkit` branches in `PlaywrightFixture`; the `chrome` and `edge` channel launches still hardcode a visible window regardless of this flag. If you need headless `chrome`/`edge`, that's a small fix still pending in `PlaywrightFixture`.
 
 ### Tag reference
 
@@ -236,7 +240,7 @@ User user = ScenarioContext.getUser();   // in a later step, possibly a differen
 
 ## Troubleshooting
 
-- **A visible Chrome/Chromium window pops up during `mvn verify`.** Expected — the framework runs non-headless by default (see `PlaywrightFixture`). Don't close it manually; let the test finish.
+- **A visible Chrome/Chromium window pops up during `mvn verify`.** For the default `chromium`/`firefox`/`webkit` browsers this shouldn't happen — headless is the default (`-Dheadless=true`); you'd only see a window if you passed `-Dheadless=false` yourself. If you're running `-Dbrowser=chrome` or `-Dbrowser=edge`, a visible window is currently expected regardless of `-Dheadless` — those two launch paths don't read the flag yet (see `PlaywrightFixture`). Either way, don't close it manually; let the test finish.
 - **First run is slow.** Playwright downloads browser binaries on first use; subsequent runs are fast.
 - **`mvn allure:report` output looks broken/blank when opened directly.** Use `mvn allure:serve` instead (see above) — the static report needs to be served over HTTP, not opened via `file://`.
 - **A locator isn't found.** Open the target page in a real browser, inspect the element, and confirm its `data-test` attribute — the app occasionally doesn't expose one, in which case a CSS fallback (matching the pattern already used in `CheckoutCart`/`ProductList`) is acceptable.

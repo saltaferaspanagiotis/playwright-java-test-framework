@@ -28,18 +28,19 @@ public abstract class PlaywrightFixture {
     });
     protected static ThreadLocal<Browser> browser = ThreadLocal.withInitial(() -> {
         String browserName = System.getProperty("browser", "chromium").toLowerCase();
+        boolean headless = System.getProperty("headless", "true").equalsIgnoreCase("true");
         BrowserType.LaunchOptions chromiumOptions = new BrowserType.LaunchOptions()
-                .setHeadless(false)
+                .setHeadless(headless)
                 .setArgs(Arrays.asList("--no-sandbox", "--disable-extensions", "--disable-gpu"));
         Browser launchedBrowser = switch (browserName) {
             case "chrome"   -> playwright.get().chromium().launch(new BrowserType.LaunchOptions()
-                                    .setHeadless(false).setChannel("chrome")
+                                    .setHeadless(headless).setChannel("chrome")
                                     .setArgs(Arrays.asList("--no-sandbox", "--disable-extensions", "--disable-gpu")));
             case "edge"     -> playwright.get().chromium().launch(new BrowserType.LaunchOptions()
-                                    .setHeadless(false).setChannel("msedge")
+                                    .setHeadless(headless).setChannel("msedge")
                                     .setArgs(Arrays.asList("--no-sandbox", "--disable-extensions", "--disable-gpu")));
-            case "firefox"  -> playwright.get().firefox().launch(new BrowserType.LaunchOptions().setHeadless(false));
-            case "webkit"   -> playwright.get().webkit().launch(new BrowserType.LaunchOptions().setHeadless(false));
+            case "firefox"  -> playwright.get().firefox().launch(new BrowserType.LaunchOptions().setHeadless(headless));
+            case "webkit"   -> playwright.get().webkit().launch(new BrowserType.LaunchOptions().setHeadless(headless));
             default         -> playwright.get().chromium().launch(chromiumOptions);
         };
         allBrowsers.add(launchedBrowser);
