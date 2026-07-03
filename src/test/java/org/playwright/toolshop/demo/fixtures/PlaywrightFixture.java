@@ -2,23 +2,28 @@ package org.playwright.toolshop.demo.fixtures;
 
 import com.microsoft.playwright.*;
 import io.qameta.allure.Allure;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.TestInfo;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class PlaywrightFixture {
+
+    // Tracks every Playwright/Browser instance created by any worker thread, so
+    // closePlaywright() can close them all from a single call on a single thread —
+    // the ThreadLocals below only expose the calling thread's own instance via .get().
+    private static final Set<Playwright> allPlaywrights = ConcurrentHashMap.newKeySet();
+    private static final Set<Browser> allBrowsers = ConcurrentHashMap.newKeySet();
 
     protected static ThreadLocal<Playwright> playwright = ThreadLocal.withInitial(()->
     {
         Playwright playwrightInstance = Playwright.create();
         playwrightInstance.selectors().setTestIdAttribute("data-test");
+        allPlaywrights.add(playwrightInstance);
         return playwrightInstance;
     });
     protected static ThreadLocal<Browser> browser = ThreadLocal.withInitial(() -> {
@@ -26,7 +31,7 @@ public abstract class PlaywrightFixture {
         BrowserType.LaunchOptions chromiumOptions = new BrowserType.LaunchOptions()
                 .setHeadless(false)
                 .setArgs(Arrays.asList("--no-sandbox", "--disable-extensions", "--disable-gpu"));
-        return switch (browserName) {
+        Browser launchedBrowser = switch (browserName) {
             case "chrome"   -> playwright.get().chromium().launch(new BrowserType.LaunchOptions()
                                     .setHeadless(false).setChannel("chrome")
                                     .setArgs(Arrays.asList("--no-sandbox", "--disable-extensions", "--disable-gpu")));
@@ -37,6 +42,8 @@ public abstract class PlaywrightFixture {
             case "webkit"   -> playwright.get().webkit().launch(new BrowserType.LaunchOptions().setHeadless(false));
             default         -> playwright.get().chromium().launch(chromiumOptions);
         };
+        allBrowsers.add(launchedBrowser);
+        return launchedBrowser;
     });
 
     private static final ThreadLocal<Page> page = new ThreadLocal<>();
@@ -68,12 +75,12 @@ public abstract class PlaywrightFixture {
         }
     }
 
-    @AfterAll
-    static void closePlaywright() {
-        browser.get().close();
-        browser.remove();
-        playwright.get().close();
-        playwright.remove();
+
+    public static void closePlaywright() {
+        allBrowsers.forEach(Browser::close);
+        allPlaywrights.forEach(Playwright::close);
+        allBrowsers.clear();
+        allPlaywrights.clear();
     }
 
     public static Page getPage() {

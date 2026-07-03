@@ -53,7 +53,7 @@ public record User(
                 faker.address().buildingNumber(),
                 faker.address().city(),
                 faker.address().state(),
-                faker.address().country(),
+                "Greece",
                 faker.address().zipCode()
         );
         String formattedPhoneNumber = faker.phoneNumber().phoneNumber()

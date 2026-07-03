@@ -1,6 +1,7 @@
 package org.playwright.toolshop.demo.steps;
 
 import io.cucumber.java.After;
+import io.cucumber.java.AfterAll;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
 import org.playwright.toolshop.demo.fixtures.PlaywrightFixture;
@@ -21,5 +22,13 @@ public class CucumberHooks {
     @After(order = 0)
     public void tearDown(Scenario scenario) {
         PlaywrightFixture.cleanupContext(scenario.getName());
+    }
+
+    // Runs once, after every scenario on every worker thread has finished — not per
+    // scenario, since Browser/Playwright are deliberately reused across a thread's
+    // scenarios (see PlaywrightFixture). Must be static per Cucumber's @AfterAll contract.
+    @AfterAll
+    public static void tearDownSuite() {
+        PlaywrightFixture.closePlaywright();
     }
 }
